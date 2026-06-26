@@ -11,13 +11,79 @@ const router   = express.Router();
 const supabase = require('../services/supabase');
 const { clearTenantCache } = require('../middleware/tenant.middleware');
 
-// Simple secret-based guard for superadmin
+// Guard for superadmin routes. Accepts EITHER:
+//   1. the shared SUPERADMIN_SECRET header (programmatic / bootstrap use), or
+//   2. a superadmin JWT issued by POST /api/superadmin/login (the panel).
 function superadminAuth(req, res, next) {
+  const secret = req.headers['x-superadmin-secret'];
+  if (secret && secret === process.env.SUPERADMIN_SECRET) return next();
+
+  const authz = req.headers.authorization || '';
+  const token = authz.startsWith('Bearer ') ? authz.slice(7) : null;
+  if (token) {
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET);
+      if (payload.scope === 'superadmin') {
+        req.superadmin = { id: payload.id, email: payload.email, name: payload.name };
+        return next();
+      }
+    } catch { /* invalid token — fall through to 403 */ }
+  }
+  return res.status(403).json({ error: 'Forbidden' });
+}
+
+// POST /api/superadmin/bootstrap — create the first superadmin account.
+// Protected by the shared secret so it can be called once during setup.
+router.post('/bootstrap', async (req, res) => {
   const secret = req.headers['x-superadmin-secret'];
   if (!secret || secret !== process.env.SUPERADMIN_SECRET)
     return res.status(403).json({ error: 'Forbidden' });
-  next();
-}
+
+  const { name, email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ error: 'email and password required' });
+
+  const { data: existing } = await supabase
+    .from('superadmins').select('id').eq('email', email.toLowerCase().trim()).maybeSingle();
+  if (existing) return res.status(409).json({ error: 'A superadmin with that email already exists' });
+
+  const hash = await bcrypt.hash(password, 10);
+  const { data, error } = await supabase
+    .from('superadmins')
+    .insert({ name: name || 'Super Admin', email: email.toLowerCase().trim(), password_hash: hash })
+    .select('id, name, email')
+    .single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(201).json({ superadmin: data });
+});
+
+// POST /api/superadmin/login — email + password → superadmin JWT
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+
+  const { data: sa } = await supabase
+    .from('superadmins')
+    .select('id, name, email, password_hash')
+    .eq('email', email.toLowerCase().trim())
+    .maybeSingle();
+  if (!sa) return res.status(401).json({ error: 'Invalid credentials' });
+
+  const valid = await bcrypt.compare(password, sa.password_hash);
+  if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+
+  const token = jwt.sign(
+    { id: sa.id, email: sa.email, name: sa.name, scope: 'superadmin' },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' },
+  );
+  res.json({ token, superadmin: { id: sa.id, name: sa.name, email: sa.email } });
+});
+
+// GET /api/superadmin/me — restore session
+router.get('/me', superadminAuth, (req, res) => {
+  res.json({ superadmin: req.superadmin || { secret: true } });
+});
 
 // GET /api/superadmin/tenants
 router.get('/tenants', superadminAuth, async (req, res) => {

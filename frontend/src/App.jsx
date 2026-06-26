@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import Leads from './pages/Leads';
 import Admin from './pages/Admin';
 import MetaForms from './pages/MetaForms';
+import SuperadminLogin from './pages/SuperadminLogin';
+import SuperadminDashboard from './pages/SuperadminDashboard';
 
 function ProtectedLayout() {
   const { user, loading } = useAuth();
@@ -30,10 +32,21 @@ function ProtectedLayout() {
   );
 }
 
+function SuperadminGuard() {
+  const token = localStorage.getItem('sa_token');
+  if (!token) return <Navigate to="/superadmin/login" replace />;
+  return <SuperadminDashboard />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
+        {/* Platform-level superadmin (separate auth from tenant users) */}
+        <Route path="/superadmin/login" element={<SuperadminLogin />} />
+        <Route path="/superadmin"       element={<SuperadminGuard />} />
+
+        {/* Tenant app */}
         <Route path="/login" element={<Login />} />
         <Route path="/*"    element={<ProtectedLayout />} />
       </Routes>
