@@ -24,7 +24,10 @@ app.use(cors({
     const allowed = process.env.FRONTEND_URL || 'http://localhost:5173';
     // Allow the configured frontend, *.yourcrm.com subdomains, and Render-hosted
     // frontends (*.onrender.com) so the app works before a custom domain is set up.
-    if (origin === allowed || origin.endsWith('.noomerical.com') || origin.endsWith('.onrender.com'))
+    if (origin === allowed
+        || origin.endsWith('.noomerical.com')
+        || origin.endsWith('.noomerical.website')
+        || origin.endsWith('.onrender.com'))
       return cb(null, true);
     if (process.env.NODE_ENV !== 'production') return cb(null, true);
     cb(new Error('CORS: origin not allowed'));
