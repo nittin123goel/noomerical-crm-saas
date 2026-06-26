@@ -1,0 +1,64 @@
+require('dotenv').config();
+
+const express = require('express');
+const cors    = require('cors');
+
+const { tenantMiddleware } = require('./middleware/tenant.middleware');
+
+// Routes
+const authRoutes       = require('./routes/auth.routes');
+const leadsRoutes      = require('./routes/leads.routes');
+const adminRoutes      = require('./routes/admin.routes');
+const superadminRoutes = require('./routes/superadmin.routes');
+const webhookRoutes    = require('./routes/webhook.routes');
+const metaFormsRoutes  = require('./routes/meta-forms.routes');
+
+const app  = express();
+const PORT = process.env.PORT || 3000;
+
+// ── CORS ──────────────────────────────────────────────────────────────────────
+// Allow requests from any subdomain of the main domain + local dev
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // server-to-server
+    const allowed = process.env.FRONTEND_URL || 'http://localhost:5173';
+    // Allow *.yourcrm.com subdomains
+    if (origin === allowed || origin.endsWith('.yourcrm.com')) return cb(null, true);
+    if (process.env.NODE_ENV !== 'production') return cb(null, true);
+    cb(new Error('CORS: origin not allowed'));
+  },
+  credentials: true,
+}));
+
+// ── Body parsing ──────────────────────────────────────────────────────────────
+// Note: Meta webhook route uses express.raw() — must be mounted BEFORE json()
+app.use('/api/webhook/meta', express.raw({ type: 'application/json' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// ── Tenant resolution (attaches req.tenant + req.tenantId) ───────────────────
+app.use(tenantMiddleware);
+
+// ── Routes ────────────────────────────────────────────────────────────────────
+app.use('/api/auth',        authRoutes);
+app.use('/api/leads',       leadsRoutes);
+app.use('/api/admin',       adminRoutes);
+app.use('/api/superadmin',  superadminRoutes);
+app.use('/api/webhook',     webhookRoutes);
+app.use('/api/meta-forms',  metaFormsRoutes);
+
+// Health check
+app.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
+
+// 404
+app.use((req, res) => res.status(404).json({ error: `Route ${req.method} ${req.path} not found` }));
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+app.listen(PORT, () => {
+  console.log(`[CRM SaaS] Backend running on port ${PORT}`);
+});
