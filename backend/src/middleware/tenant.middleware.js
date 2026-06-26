@@ -29,9 +29,28 @@ async function resolveTenant(subdomain) {
 }
 
 async function tenantMiddleware(req, res, next) {
-  const host      = req.hostname || '';
-  const parts     = host.split('.');
-  const subdomain = parts.length >= 3 ? parts[0] : null;
+  // Platform-level & public routes don't belong to a tenant. They must bypass
+  // subdomain resolution — superadmin creates tenants, webhooks resolve the
+  // tenant themselves (e.g. by Meta page_id), and /health is unauthenticated.
+  const p = req.path;
+  if (p === '/health' || p.startsWith('/api/superadmin') || p.startsWith('/api/webhook')) {
+    req.tenant = null;
+    return next();
+  }
+
+  // Single-tenant mode: when DEFAULT_TENANT_SUBDOMAIN is set, always resolve to
+  // that tenant regardless of host. This lets the app run on a plain host like
+  // *.onrender.com (which has no per-tenant subdomain). Leave it unset to use
+  // true subdomain-based multi-tenancy (tenant.yourcrm.com).
+  const forced = process.env.DEFAULT_TENANT_SUBDOMAIN;
+  let subdomain;
+  if (forced) {
+    subdomain = forced;
+  } else {
+    const host  = req.hostname || '';
+    const parts = host.split('.');
+    subdomain   = parts.length >= 3 ? parts[0] : null;
+  }
 
   // No subdomain — routes like /api/auth/signup, /health
   if (!subdomain || subdomain === 'www' || subdomain === 'app') {
