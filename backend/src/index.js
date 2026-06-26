@@ -23,7 +23,7 @@ app.use(cors({
     if (!origin) return cb(null, true); // server-to-server
     const allowed = process.env.FRONTEND_URL || 'http://localhost:5173';
     // Allow *.yourcrm.com subdomains
-    if (origin === allowed || origin.endsWith('.yourcrm.com')) return cb(null, true);
+    if (origin === allowed || origin.endsWith('.noomerical.com')) return cb(null, true);
     if (process.env.NODE_ENV !== 'production') return cb(null, true);
     cb(new Error('CORS: origin not allowed'));
   },
@@ -60,5 +60,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`[CRM SaaS] Backend running on port ${PORT}`);
+  console.log(`[Noomerical CRM] Backend running on port ${PORT}`);
 });
