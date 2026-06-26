@@ -38,18 +38,25 @@ async function tenantMiddleware(req, res, next) {
     return next();
   }
 
-  // Single-tenant mode: when DEFAULT_TENANT_SUBDOMAIN is set, always resolve to
-  // that tenant regardless of host. This lets the app run on a plain host like
-  // *.onrender.com (which has no per-tenant subdomain). Leave it unset to use
-  // true subdomain-based multi-tenancy (tenant.yourcrm.com).
-  const forced = process.env.DEFAULT_TENANT_SUBDOMAIN;
-  let subdomain;
-  if (forced) {
-    subdomain = forced;
+  // Resolve which tenant this request belongs to. Priority:
+  //   1. X-Tenant header — the frontend sends its own subdomain. Required because
+  //      the frontend (app.*) and API (api.*) are on different hosts, so the API
+  //      cannot read the tenant subdomain from its own hostname.
+  //   2. The request's own subdomain (acme.noomerical.website -> "acme").
+  //   3. DEFAULT_TENANT_SUBDOMAIN fallback (single-tenant / bare-host access).
+  const headerTenant = (req.headers['x-tenant'] || '').toString().trim().toLowerCase();
+  let subdomain = null;
+  if (headerTenant) {
+    subdomain = headerTenant;
   } else {
-    const host  = req.hostname || '';
-    const parts = host.split('.');
-    subdomain   = parts.length >= 3 ? parts[0] : null;
+    const host    = req.hostname || '';
+    const parts   = host.split('.');
+    const hostSub = parts.length >= 3 ? parts[0].toLowerCase() : null;
+    if (hostSub && !['www', 'app', 'api'].includes(hostSub) && !host.endsWith('.onrender.com')) {
+      subdomain = hostSub;
+    } else {
+      subdomain = process.env.DEFAULT_TENANT_SUBDOMAIN || null;
+    }
   }
 
   // No subdomain — routes like /api/auth/signup, /health

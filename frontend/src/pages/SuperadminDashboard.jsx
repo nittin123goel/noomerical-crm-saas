@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import saApi from '../services/superadmin';
+import { baseDomain } from '../services/tenant';
 
 const BLANK = {
   name: '', subdomain: '', industry: 'general',
@@ -112,9 +113,14 @@ export default function SuperadminDashboard() {
         <div className="card" style={{ marginBottom: 20, borderLeft: '4px solid #16a34a' }}>
           <h3 style={{ margin: '0 0 8px', fontSize: 15 }}>✅ Business created — share these login details</h3>
           <p style={{ fontSize: 13, color: 'var(--clr-muted)', margin: '0 0 8px' }}>
-            The admin can sign in at the main app login page with:
+            The admin signs in at their own business URL:
           </p>
           <div style={{ fontSize: 13, lineHeight: 1.8 }}>
+            <div><strong>Login URL:</strong>{' '}
+              <a href={`https://${created.tenant.subdomain}.${baseDomain()}/login`} target="_blank" rel="noreferrer">
+                https://{created.tenant.subdomain}.{baseDomain()}/login
+              </a>
+            </div>
             <div><strong>Business:</strong> {created.tenant.name} ({created.tenant.subdomain})</div>
             <div><strong>Email:</strong> {created.admin_email}</div>
             <div><strong>Password:</strong> {created.admin_password}</div>
