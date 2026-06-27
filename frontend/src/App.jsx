@@ -8,6 +8,11 @@ import Leads from './pages/Leads';
 import OldLeads from './pages/OldLeads';
 import FollowUps from './pages/FollowUps';
 import Customers from './pages/Customers';
+import Deals from './pages/Deals';
+import FrontDesk from './pages/FrontDesk';
+import Reports from './pages/Reports';
+import Campaigns from './pages/Campaigns';
+import Notifications from './pages/Notifications';
 import Admin from './pages/Admin';
 import MetaForms from './pages/MetaForms';
 import SuperadminLogin from './pages/SuperadminLogin';
@@ -30,6 +35,11 @@ function ProtectedLayout() {
           <Route path="old-leads" element={<OldLeads />} />
           <Route path="follow-ups" element={<FollowUps />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="deals" element={<Deals />} />
+          <Route path="front-desk" element={<FrontDesk />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="campaigns" element={<Campaigns />} />
+          <Route path="notifications" element={<Notifications />} />
           <Route path="admin" element={<Admin />} />
           <Route path="meta-forms" element={<MetaForms />} />
           {/* Add more pages here as they are built */}

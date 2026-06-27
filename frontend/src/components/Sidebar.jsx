@@ -3,19 +3,23 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, BookOpen, Settings, BellRing, Archive, UserCircle,
-  Megaphone, ChevronLeft, ChevronRight, Share2, LogOut,
+  Megaphone, ChevronLeft, ChevronRight, Share2, LogOut, BarChart3, ConciergeBell,
 } from 'lucide-react';
 
+// `industries` empty/undefined = show for everyone. Otherwise only for listed industries.
 const NAV = [
-  { to: '/',           label: 'Dashboard',  icon: LayoutDashboard },
-  { to: '/leads',      label: 'Leads',      icon: Users },
-  { to: '/follow-ups', label: 'Follow-ups', icon: BellRing },
-  { to: '/old-leads',  label: 'Old Leads',  icon: Archive },
-  { to: '/customers',  label: 'Customers',  icon: UserCircle },
-  { to: '/deals',      label: 'Deals',      icon: BookOpen },
-  { to: '/campaigns',  label: 'Campaigns',  icon: Megaphone },
-  { to: '/meta-forms', label: 'Meta Forms', icon: Share2 },
-  { to: '/admin',      label: 'Admin',      icon: Settings },
+  { to: '/',            label: 'Dashboard',  icon: LayoutDashboard },
+  { to: '/leads',       label: 'Leads',      icon: Users },
+  { to: '/follow-ups',  label: 'Follow-ups', icon: BellRing },
+  { to: '/old-leads',   label: 'Old Leads',  icon: Archive },
+  { to: '/customers',   label: 'Customers',  icon: UserCircle },
+  { to: '/deals',       label: 'Deals',      icon: BookOpen },
+  { to: '/front-desk',  label: 'Front Desk', icon: ConciergeBell, industries: ['hospitality'] },
+  { to: '/campaigns',   label: 'Campaigns',  icon: Megaphone },
+  { to: '/reports',     label: 'Reports',    icon: BarChart3 },
+  { to: '/meta-forms',  label: 'Meta Forms', icon: Share2 },
+  { to: '/notifications', label: 'Notifications', icon: BellRing },
+  { to: '/admin',       label: 'Admin',      icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -38,7 +42,7 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="sidebar-nav">
-        {NAV.map(({ to, label, icon: Icon }) => (
+        {NAV.filter(item => !item.industries || item.industries.includes(tenant?.industry)).map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}

@@ -20,7 +20,7 @@ async function resolveTenant(subdomain) {
 
   const { data } = await supabase
     .from('tenants')
-    .select('id, name, subdomain, status, plan, plan_expires_at, primary_color, logo_url, timezone, currency, locale')
+    .select('id, name, subdomain, status, plan, plan_expires_at, industry, primary_color, logo_url, timezone, currency, locale')
     .eq('subdomain', subdomain)
     .maybeSingle();
 
