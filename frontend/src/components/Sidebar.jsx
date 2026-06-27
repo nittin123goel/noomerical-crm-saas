@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, BookOpen, Settings, BellRing, Archive, UserCircle,
   Megaphone, ChevronLeft, ChevronRight, Share2, LogOut, BarChart3, ConciergeBell,
-  BedDouble, Briefcase,
+  BedDouble, Briefcase, Plug,
 } from 'lucide-react';
 
 // `industries` empty/undefined = show for everyone. Otherwise only for listed industries.
@@ -21,6 +21,7 @@ const NAV = [
   { to: '/campaigns',   label: 'Campaigns',  icon: Megaphone },
   { to: '/reports',     label: 'Reports',    icon: BarChart3 },
   { to: '/meta-forms',  label: 'Meta Forms', icon: Share2 },
+  { to: '/integrations', label: 'Integrations', icon: Plug },
   { to: '/notifications', label: 'Notifications', icon: BellRing },
   { to: '/admin',       label: 'Admin',      icon: Settings },
 ];

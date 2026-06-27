@@ -15,6 +15,7 @@ import B2BAgents from './pages/B2BAgents';
 import Reports from './pages/Reports';
 import Campaigns from './pages/Campaigns';
 import Notifications from './pages/Notifications';
+import Integrations from './pages/Integrations';
 import Admin from './pages/Admin';
 import MetaForms from './pages/MetaForms';
 import SuperadminLogin from './pages/SuperadminLogin';
@@ -43,6 +44,7 @@ function ProtectedLayout() {
           <Route path="b2b-agents" element={<B2BAgents />} />
           <Route path="reports" element={<Reports />} />
           <Route path="campaigns" element={<Campaigns />} />
+          <Route path="integrations" element={<Integrations />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="admin" element={<Admin />} />
           <Route path="meta-forms" element={<MetaForms />} />

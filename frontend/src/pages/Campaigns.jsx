@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Megaphone, Plus, Trash2 } from 'lucide-react';
+import { Megaphone, Plus, Trash2, Send } from 'lucide-react';
 import api from '../services/api';
 
 const STATUS_LABELS = { new: 'New', contacted: 'Contacted', interested: 'Interested', converted: 'Converted', lost: 'Lost' };
@@ -19,6 +19,12 @@ export default function Campaigns() {
   async function remove(c) {
     if (!confirm(`Delete campaign "${c.name}"?`)) return;
     await api.delete(`/campaigns/${c.id}`); load();
+  }
+
+  async function send(c) {
+    if (!confirm(`Send "${c.name}" to ${c.total_leads} leads now?`)) return;
+    try { await api.post(`/campaigns/${c.id}/send`); load(); }
+    catch (e) { alert(e.response?.data?.error || 'Send failed'); }
   }
 
   return (
@@ -49,7 +55,12 @@ export default function Campaigns() {
                   <td>{c.total_leads} leads</td>
                   <td><span className="badge badge-gray">{c.status}</span></td>
                   <td style={{ color: 'var(--clr-muted)' }}>{new Date(c.created_at).toLocaleDateString('en-IN')}</td>
-                  <td style={{ textAlign: 'right' }}><button className="btn btn-secondary" style={{ padding: '4px 8px' }} onClick={() => remove(c)}><Trash2 size={13} /></button></td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    {c.channel === 'whatsapp' && c.status !== 'sent' && (
+                      <button className="btn btn-primary" style={{ padding: '4px 10px' }} onClick={() => send(c)}><Send size={13} />Send</button>
+                    )}{' '}
+                    <button className="btn btn-secondary" style={{ padding: '4px 8px' }} onClick={() => remove(c)}><Trash2 size={13} /></button>
+                  </td>
                 </tr>
               ))}
             </tbody>
