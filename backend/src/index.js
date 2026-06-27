@@ -18,6 +18,8 @@ const reportsRoutes    = require('./routes/reports.routes');
 const dealsRoutes      = require('./routes/deals.routes');
 const notificationsRoutes = require('./routes/notifications.routes');
 const campaignsRoutes  = require('./routes/campaigns.routes');
+const inventoryRoutes  = require('./routes/inventory.routes');
+const b2bRoutes        = require('./routes/b2b.routes');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -59,6 +61,8 @@ app.use('/api/reports',     reportsRoutes);
 app.use('/api/deals',       dealsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/campaigns',   campaignsRoutes);
+app.use('/api/inventory',   inventoryRoutes);
+app.use('/api/b2b-agents',  b2bRoutes);
 app.use('/api/admin',       adminRoutes);
 app.use('/api/superadmin',  superadminRoutes);
 app.use('/api/webhook',     webhookRoutes);

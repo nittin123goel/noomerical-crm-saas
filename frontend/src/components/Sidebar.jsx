@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, BookOpen, Settings, BellRing, Archive, UserCircle,
   Megaphone, ChevronLeft, ChevronRight, Share2, LogOut, BarChart3, ConciergeBell,
+  BedDouble, Briefcase,
 } from 'lucide-react';
 
 // `industries` empty/undefined = show for everyone. Otherwise only for listed industries.
@@ -15,6 +16,8 @@ const NAV = [
   { to: '/customers',   label: 'Customers',  icon: UserCircle },
   { to: '/deals',       label: 'Deals',      icon: BookOpen },
   { to: '/front-desk',  label: 'Front Desk', icon: ConciergeBell, industries: ['hospitality'] },
+  { to: '/inventory',   label: 'Inventory',  icon: BedDouble,     industries: ['hospitality'] },
+  { to: '/b2b-agents',  label: 'B2B Agents', icon: Briefcase,     industries: ['hospitality'] },
   { to: '/campaigns',   label: 'Campaigns',  icon: Megaphone },
   { to: '/reports',     label: 'Reports',    icon: BarChart3 },
   { to: '/meta-forms',  label: 'Meta Forms', icon: Share2 },

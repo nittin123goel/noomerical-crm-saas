@@ -10,6 +10,8 @@ import FollowUps from './pages/FollowUps';
 import Customers from './pages/Customers';
 import Deals from './pages/Deals';
 import FrontDesk from './pages/FrontDesk';
+import Inventory from './pages/Inventory';
+import B2BAgents from './pages/B2BAgents';
 import Reports from './pages/Reports';
 import Campaigns from './pages/Campaigns';
 import Notifications from './pages/Notifications';
@@ -37,6 +39,8 @@ function ProtectedLayout() {
           <Route path="customers" element={<Customers />} />
           <Route path="deals" element={<Deals />} />
           <Route path="front-desk" element={<FrontDesk />} />
+          <Route path="inventory" element={<Inventory />} />
+          <Route path="b2b-agents" element={<B2BAgents />} />
           <Route path="reports" element={<Reports />} />
           <Route path="campaigns" element={<Campaigns />} />
           <Route path="notifications" element={<Notifications />} />
