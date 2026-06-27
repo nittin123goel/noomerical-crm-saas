@@ -33,7 +33,7 @@ async function tenantMiddleware(req, res, next) {
   // subdomain resolution — superadmin creates tenants, webhooks resolve the
   // tenant themselves (e.g. by Meta page_id), and /health is unauthenticated.
   const p = req.path;
-  if (p === '/health' || p.startsWith('/api/superadmin') || p.startsWith('/api/webhook')) {
+  if (p === '/health' || p.startsWith('/api/superadmin') || p.startsWith('/api/webhook') || p.startsWith('/api/signup')) {
     req.tenant = null;
     return next();
   }

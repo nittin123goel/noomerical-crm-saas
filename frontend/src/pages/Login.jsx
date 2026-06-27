@@ -51,6 +51,10 @@ export default function Login() {
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+
+        <p style={{ marginTop: 18, fontSize: 13, color: 'var(--clr-muted)', textAlign: 'center' }}>
+          New business? <a href="/signup">Create an account</a>
+        </p>
       </div>
     </div>
   );

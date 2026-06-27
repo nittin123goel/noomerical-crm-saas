@@ -9,6 +9,7 @@ import Admin from './pages/Admin';
 import MetaForms from './pages/MetaForms';
 import SuperadminLogin from './pages/SuperadminLogin';
 import SuperadminDashboard from './pages/SuperadminDashboard';
+import Signup from './pages/Signup';
 
 function ProtectedLayout() {
   const { user, loading } = useAuth();
@@ -45,6 +46,9 @@ export default function App() {
         {/* Platform-level superadmin (separate auth from tenant users) */}
         <Route path="/superadmin/login" element={<SuperadminLogin />} />
         <Route path="/superadmin"       element={<SuperadminGuard />} />
+
+        {/* Public self-serve signup */}
+        <Route path="/signup" element={<Signup />} />
 
         {/* Tenant app */}
         <Route path="/login" element={<Login />} />

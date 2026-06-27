@@ -10,6 +10,7 @@ const jwt      = require('jsonwebtoken');
 const router   = express.Router();
 const supabase = require('../services/supabase');
 const { clearTenantCache } = require('../middleware/tenant.middleware');
+const { createTenant } = require('../services/provision');
 
 // Guard for superadmin routes. Accepts EITHER:
 //   1. the shared SUPERADMIN_SECRET header (programmatic / bootstrap use), or
@@ -96,61 +97,9 @@ router.get('/tenants', superadminAuth, async (req, res) => {
 
 // POST /api/superadmin/tenants  — create new tenant (onboard new customer)
 router.post('/tenants', superadminAuth, async (req, res) => {
-  const {
-    name, subdomain, industry, plan, billing_email, billing_phone,
-    admin_name, admin_email, admin_password,
-    timezone, currency, locale,
-  } = req.body;
-
-  if (!name || !subdomain || !admin_email || !admin_password)
-    return res.status(400).json({ error: 'name, subdomain, admin_email, admin_password required' });
-
-  // 1. Create tenant
-  const { data: tenant, error: tErr } = await supabase
-    .from('tenants')
-    .insert({
-      name, subdomain: subdomain.toLowerCase(), industry: industry || 'general',
-      status: 'trial', plan: plan || 'starter',
-      billing_email, billing_phone,
-      timezone: timezone || 'Asia/Kolkata',
-      currency: currency || 'INR',
-      locale: locale || 'en-IN',
-    })
-    .select()
-    .single();
-  if (tErr) return res.status(400).json({ error: tErr.message });
-
-  // 2. Seed tenant_settings
-  await supabase.from('tenant_settings').insert({ tenant_id: tenant.id });
-
-  // 3. Create master user
-  const hash = await bcrypt.hash(admin_password, 10);
-  await supabase.from('users').insert({
-    tenant_id:     tenant.id,
-    name:          admin_name || name + ' Admin',
-    email:         admin_email.toLowerCase(),
-    password_hash: hash,
-    role:          'master',
-  });
-
-  // 4. Seed default permissions (admin + manager + sales)
-  const ROLES = ['admin', 'manager', 'sales'];
-  const PAGES = ['leads', 'deals', 'customers', 'inventory', 'reports', 'campaigns', 'payments', 'admin'];
-  const perms = [];
-  for (const role of ROLES) {
-    for (const page of PAGES) {
-      perms.push({
-        tenant_id: tenant.id, role, page,
-        can_view: role !== 'sales' || page !== 'admin',
-        can_edit: role === 'admin' || role === 'manager',
-      });
-    }
-  }
-  await supabase.from('role_permissions').insert(perms);
-
-  clearTenantCache(subdomain.toLowerCase());
-
-  res.status(201).json({ tenant, message: `Tenant created — login at https://${subdomain}.yourcrm.com` });
+  const result = await createTenant(req.body);
+  if (result.error) return res.status(result.status || 400).json({ error: result.error });
+  res.status(201).json({ tenant: result.tenant, message: 'Tenant created' });
 });
 
 // PATCH /api/superadmin/tenants/:id

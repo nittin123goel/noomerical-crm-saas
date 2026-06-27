@@ -12,6 +12,7 @@ const adminRoutes      = require('./routes/admin.routes');
 const superadminRoutes = require('./routes/superadmin.routes');
 const webhookRoutes    = require('./routes/webhook.routes');
 const metaFormsRoutes  = require('./routes/meta-forms.routes');
+const signupRoutes     = require('./routes/signup.routes');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(tenantMiddleware);
 
 // ── Routes ────────────────────────────────────────────────────────────────────
+app.use('/api/signup',      signupRoutes);
 app.use('/api/auth',        authRoutes);
 app.use('/api/leads',       leadsRoutes);
 app.use('/api/admin',       adminRoutes);
