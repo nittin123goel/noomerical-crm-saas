@@ -5,6 +5,9 @@ import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Leads from './pages/Leads';
+import OldLeads from './pages/OldLeads';
+import FollowUps from './pages/FollowUps';
+import Customers from './pages/Customers';
 import Admin from './pages/Admin';
 import MetaForms from './pages/MetaForms';
 import SuperadminLogin from './pages/SuperadminLogin';
@@ -24,6 +27,9 @@ function ProtectedLayout() {
         <Routes>
           <Route index        element={<Dashboard />} />
           <Route path="leads" element={<Leads />} />
+          <Route path="old-leads" element={<OldLeads />} />
+          <Route path="follow-ups" element={<FollowUps />} />
+          <Route path="customers" element={<Customers />} />
           <Route path="admin" element={<Admin />} />
           <Route path="meta-forms" element={<MetaForms />} />
           {/* Add more pages here as they are built */}

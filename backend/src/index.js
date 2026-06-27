@@ -13,6 +13,8 @@ const superadminRoutes = require('./routes/superadmin.routes');
 const webhookRoutes    = require('./routes/webhook.routes');
 const metaFormsRoutes  = require('./routes/meta-forms.routes');
 const signupRoutes     = require('./routes/signup.routes');
+const customersRoutes  = require('./routes/customers.routes');
+const reportsRoutes    = require('./routes/reports.routes');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -49,6 +51,8 @@ app.use(tenantMiddleware);
 app.use('/api/signup',      signupRoutes);
 app.use('/api/auth',        authRoutes);
 app.use('/api/leads',       leadsRoutes);
+app.use('/api/customers',   customersRoutes);
+app.use('/api/reports',     reportsRoutes);
 app.use('/api/admin',       adminRoutes);
 app.use('/api/superadmin',  superadminRoutes);
 app.use('/api/webhook',     webhookRoutes);

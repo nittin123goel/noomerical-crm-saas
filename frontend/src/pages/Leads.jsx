@@ -19,11 +19,12 @@ export default function Leads() {
   const [search,  setSearch]  = useState('');
   const [status,  setStatus]  = useState('');
   const [showAdd, setShowAdd] = useState(false);
+  const [selected, setSelected] = useState(null);
 
   async function load() {
     setLoading(true);
     try {
-      const params = { limit: 50, page: 1 };
+      const params = { limit: 50, page: 1, is_old_lead: false };
       if (search) params.search = search;
       if (status) params.status = status;
       const { data } = await api.get('/leads', { params });
@@ -48,6 +49,7 @@ export default function Leads() {
       </div>
 
       {showAdd && <AddLeadModal onClose={() => setShowAdd(false)} onSaved={() => { setShowAdd(false); load(); }} />}
+      {selected && <LeadDetailModal lead={selected} onClose={() => setSelected(null)} onSaved={() => { setSelected(null); load(); }} />}
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
@@ -90,7 +92,7 @@ export default function Leads() {
               ) : leads.length === 0 ? (
                 <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--clr-muted)', padding: 32 }}>No leads found</td></tr>
               ) : leads.map(lead => (
-                <tr key={lead.id} style={{ cursor: 'pointer' }}>
+                <tr key={lead.id} style={{ cursor: 'pointer' }} onClick={() => setSelected(lead)}>
                   <td style={{ fontWeight: 500 }}>{lead.name || <span style={{ color: 'var(--clr-muted)' }}>Unknown</span>}</td>
                   <td>{lead.phone}</td>
                   <td><span className="badge badge-gray">{lead.source || '—'}</span></td>
@@ -197,6 +199,116 @@ function LField({ label, span, children }) {
     <div style={span ? { gridColumn: '1 / -1' } : undefined}>
       <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: 13 }}>{label}</label>
       {children}
+    </div>
+  );
+}
+
+function toLocalInput(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+function LeadDetailModal({ lead, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    name: lead.name || '', phone: lead.phone || '', email: lead.email || '',
+    status: lead.status || 'new', temperature: lead.temperature || 'warm',
+    follow_up_at: toLocalInput(lead.follow_up_at), notes: lead.notes || '',
+  });
+  const [activities, setActivities] = useState([]);
+  const [note, setNote]   = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState('');
+
+  useEffect(() => {
+    api.get(`/leads/${lead.id}/activities`).then(r => setActivities(r.data || [])).catch(() => {});
+  }, [lead.id]);
+
+  function update(f, v) { setForm(s => ({ ...s, [f]: v })); }
+
+  async function save() {
+    setError('');
+    setSaving(true);
+    try {
+      const payload = {
+        ...form,
+        follow_up_at: form.follow_up_at ? new Date(form.follow_up_at).toISOString() : null,
+      };
+      await api.patch(`/leads/${lead.id}`, payload);
+      onSaved();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to save');
+      setSaving(false);
+    }
+  }
+
+  async function addNote() {
+    if (!note.trim()) return;
+    await api.post(`/leads/${lead.id}/activities`, { activity_type: 'note', description: note.trim() });
+    setNote('');
+    const r = await api.get(`/leads/${lead.id}/activities`);
+    setActivities(r.data || []);
+  }
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 20 }}>
+      <div className="card" onClick={e => e.stopPropagation()} style={{ width: 560, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+        <h2 style={{ fontSize: 18, marginBottom: 16 }}>Lead details</h2>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <LField label="Name"><input className="input" value={form.name} onChange={e => update('name', e.target.value)} /></LField>
+          <LField label="Phone"><input className="input" value={form.phone} onChange={e => update('phone', e.target.value)} /></LField>
+          <LField label="Email" span><input className="input" type="email" value={form.email} onChange={e => update('email', e.target.value)} /></LField>
+
+          <LField label="Status">
+            <select className="input" value={form.status} onChange={e => update('status', e.target.value)}>
+              {Object.entries(STATUS_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </LField>
+          <LField label="Temperature">
+            <select className="input" value={form.temperature} onChange={e => update('temperature', e.target.value)}>
+              <option value="hot">Hot</option><option value="warm">Warm</option><option value="cold">Cold</option>
+            </select>
+          </LField>
+          <LField label="Follow-up at" span>
+            <input className="input" type="datetime-local" value={form.follow_up_at} onChange={e => update('follow_up_at', e.target.value)} />
+          </LField>
+          <LField label="Notes" span>
+            <textarea className="input" style={{ height: 'auto', minHeight: 60, padding: 8 }} rows={2} value={form.notes} onChange={e => update('notes', e.target.value)} />
+          </LField>
+        </div>
+
+        {error && <p style={{ color: 'var(--clr-danger)', fontSize: 13, margin: '10px 0 0' }}>{error}</p>}
+
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', margin: '16px 0' }}>
+          <button className="btn btn-secondary" onClick={onClose}>Close</button>
+          <button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button>
+        </div>
+
+        {/* Activity log */}
+        <div style={{ borderTop: '1px solid var(--clr-border)', paddingTop: 14 }}>
+          <h3 style={{ fontSize: 14, marginBottom: 10 }}>Activity</h3>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <input className="input" placeholder="Add a note…" value={note} onChange={e => setNote(e.target.value)}
+                   onKeyDown={e => { if (e.key === 'Enter') addNote(); }} />
+            <button className="btn btn-secondary" onClick={addNote}>Add</button>
+          </div>
+          {activities.length === 0 ? (
+            <p style={{ color: 'var(--clr-muted)', fontSize: 13 }}>No activity yet.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {activities.map(a => (
+                <div key={a.id} style={{ fontSize: 13, borderLeft: '2px solid var(--clr-border)', paddingLeft: 10 }}>
+                  <div>{a.description}</div>
+                  <div style={{ color: 'var(--clr-muted)', fontSize: 11.5 }}>
+                    {a.performed_by_name ? `${a.performed_by_name} · ` : ''}{new Date(a.created_at).toLocaleString('en-IN')}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

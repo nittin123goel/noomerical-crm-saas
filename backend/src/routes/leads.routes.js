@@ -8,7 +8,8 @@ const { requirePermission, requireRole } = auth;
 
 // GET /api/leads  — list with filters
 router.get('/', auth, async (req, res) => {
-  const { status, source, temperature, assigned_to, search, from, to, page = 1, limit = 50 } = req.query;
+  const { status, source, temperature, assigned_to, search, from, to,
+          is_old_lead, include_spam, page = 1, limit = 50 } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
 
   let q = supabase
@@ -25,6 +26,10 @@ router.get('/', auth, async (req, res) => {
   if (from)        q = q.gte('created_at', from);
   if (to)          q = q.lte('created_at', to);
   if (search)      q = q.or(`name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
+  // Old leads live on their own tab; default list shows current leads only.
+  if (is_old_lead !== undefined) q = q.eq('is_old_lead', is_old_lead === 'true');
+  // Hide spam unless explicitly requested.
+  if (!include_spam) q = q.eq('is_spam', false);
 
   const { data, error, count } = await q;
   if (error) return res.status(500).json({ error: error.message });

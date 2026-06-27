@@ -2,17 +2,20 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  LayoutDashboard, Users, BookOpen, Settings,
+  LayoutDashboard, Users, BookOpen, Settings, BellRing, Archive, UserCircle,
   Megaphone, ChevronLeft, ChevronRight, Share2, LogOut,
 } from 'lucide-react';
 
 const NAV = [
-  { to: '/',          label: 'Dashboard',  icon: LayoutDashboard },
-  { to: '/leads',     label: 'Leads',      icon: Users },
-  { to: '/deals',     label: 'Deals',      icon: BookOpen },
-  { to: '/campaigns', label: 'Campaigns',  icon: Megaphone },
-  { to: '/meta-forms',label: 'Meta Forms', icon: Share2 },
-  { to: '/admin',     label: 'Admin',      icon: Settings },
+  { to: '/',           label: 'Dashboard',  icon: LayoutDashboard },
+  { to: '/leads',      label: 'Leads',      icon: Users },
+  { to: '/follow-ups', label: 'Follow-ups', icon: BellRing },
+  { to: '/old-leads',  label: 'Old Leads',  icon: Archive },
+  { to: '/customers',  label: 'Customers',  icon: UserCircle },
+  { to: '/deals',      label: 'Deals',      icon: BookOpen },
+  { to: '/campaigns',  label: 'Campaigns',  icon: Megaphone },
+  { to: '/meta-forms', label: 'Meta Forms', icon: Share2 },
+  { to: '/admin',      label: 'Admin',      icon: Settings },
 ];
 
 export default function Sidebar() {
